@@ -2,23 +2,26 @@ name: CD - Deploy con Git Pull
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
+    name: Deploy to Server
     runs-on: ubuntu-latest
 
     steps:
-      - name: Crear clave SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H 137.184.127.11 >> ~/.ssh/known_hosts
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Conectarse al servidor y hacer git pull
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Run Deploy Script
         run: |
-          ssh alumno@137.184.127.11 "
-            cd ~/lemp-sites/sebastian_maldonado &&
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+            cd ~/lemp-sites/sebastian_maldonado/prueba_CI &&
             git pull origin main
           "
